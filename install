@@ -1,0 +1,38 @@
+helm install --name keycloak-release stable/keycloak -f values.yaml 
+
+NOTES:
+
+Keycloak can be accessed:
+
+* Within your cluster, at the following DNS name at port 80:
+
+  keycloak-release-http.default.svc.cluster.local
+
+* From outside the cluster, run these commands in the same shell:
+
+   export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services keycloak-release)
+   export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
+   echo http://$NODE_IP:$NODE_PORT
+
+Login with the following credentials:
+Username: keycloak
+
+To retrieve the initial user password run:
+kubectl get secret --namespace default keycloak-release-http -o jsonpath="{.data.password}" | base64 --decode; echo
+
+
+
+Note Postgres :
+
+   export POSTGRES_PASSWORD=$(kubectl get secret --namespace default postgres-release-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
+
+To connect to your database run the following command:
+
+    kubectl run postgres-release-postgresql-client --rm --tty -i --restart='Never' --namespace default --image bitnami/postgresql --env="PGPASSWORD=$POSTGRES_PASSWORD" --command -- psql --host postgres-release-postgresql -U postgres
+# \l - list db
+# \c <db name> (keycloak)
+# \dt realm
+# update realm set ssl_required='NONE';
+# \q quit
+
+# https://medium.com/@sairamkrish/keycloak-integration-part-1-overview-812010d6c7cf
